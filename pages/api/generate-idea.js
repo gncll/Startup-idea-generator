@@ -40,19 +40,36 @@ Return ONLY a valid JSON object with this exact structure:
   "validation": {
     "platforms": ${JSON.stringify(validationPlatforms)},
     "metrics": ["Platform-specific success metrics for each selected platform"],
-    "strategy": "Detailed content strategy tailored to the selected platforms, focusing on problem validation before solution promotion. Include specific tactics for each platform."
+    "platformStrategies": [
+      {
+        "platform": "Platform name from selected platforms",
+        "frequency": "Posting frequency (e.g., 3 videos/week, daily posts)",
+        "strategy": "Detailed platform-specific strategy for this business idea",
+        "contentIdeas": ["Specific content idea 1", "Specific content idea 2", "Specific content idea 3", "Specific content idea 4"]
+      }
+    ]
   },
+   "weeklyPlan": [
+      ${Array.from({length: parseInt(timeline)}, (_, i) => `
+      {
+        "week": ${i + 1},
+        "focus": "Week ${i + 1} specific focus area for this startup idea",
+        "tasks": ["Specific actionable task 1 for week ${i + 1}", "Specific actionable task 2 for week ${i + 1}", "Specific actionable task 3 for week ${i + 1}"],
+        "deliverables": ["Concrete deliverable 1 for week ${i + 1}", "Concrete deliverable 2 for week ${i + 1}"],
+        "metrics": "Measurable success metrics and KPIs for week ${i + 1}"
+      }`).join(',\n  ')}
+    ],
   "roadmap": [
     ${timeline <= 4 ? `
     {
-      "phase": "Week 1: Rapid Validation", 
+      "phase": "Week 1: Rapid Validation",
       "description": "Lightning customer interviews, quick landing page, problem validation",
       "focus": "Validation (80%), basic setup (20%)",
       "budget": "50% of total budget"
     },
     {
       "phase": "Weeks 2-3: Sprint Development",
-      "description": "Build core MVP features, basic user testing", 
+      "description": "Build core MVP features, basic user testing",
       "focus": "Development (90%), testing (10%)",
       "budget": "40% of total budget"
     },
@@ -87,17 +104,42 @@ Return ONLY a valid JSON object with this exact structure:
       "budget": "5% of total budget"
     }`}
   ],
-  "goToMarket": "Go-to-market strategy focusing on customer acquisition, tailored to the ${timeline}-week timeline",
+  "marketingChannels": [
+    {
+      "channel": "Marketing channel name (e.g., Content Marketing, Influencer Partnerships)",
+      "strategy": "Detailed strategy for this channel",
+      "budget": "Percentage of marketing budget",
+      "timeline": "When to implement (e.g., Week 1-12)"
+    }
+  ],
+  "contentPlan": [
+    {
+      "type": "Content type (e.g., Educational Videos, User Success Stories)",
+      "description": "Detailed description of this content type",
+      "frequency": "How often to create (e.g., 3 times per week)",
+      "platforms": ["Platform 1", "Platform 2"]
+    }
+  ],
+  "goToMarket": "Comprehensive go-to-market strategy focusing on customer acquisition, tailored to the ${timeline}-week timeline",
   "fundingNeeds": "Estimated funding requirements based on ${timeline}-week development timeline"
 }
 
-IMPORTANT GUIDELINES:
-1. Tailor tool recommendations to the business type and timeline
-2. Customize validation strategy specifically for the selected platforms: ${validationPlatforms.join(', ')}
-3. Adjust roadmap complexity based on ${timeline}-week timeline
-4. Include platform-specific content strategies (e.g., Twitter threads, Instagram visual content, TikTok videos, YouTube tutorials, Reddit discussions, Discord community building)
-5. Provide realistic budget allocations that match the timeline
-6. Make funding needs proportional to timeline length (shorter = bootstrap friendly, longer = more funding needed)
+CRITICAL REQUIREMENTS:
+1. Generate platformStrategies for EACH selected platform: ${validationPlatforms.join(', ')}
+2. Create weeklyPlan for ALL ${timeline} weeks (each week should have specific tasks)
+3. Tailor all content strategies to the specific business idea (${problem} + ${solution})
+4. Include 3-4 marketingChannels appropriate for this business type
+5. Provide 3-4 contentPlan types that align with selected platforms
+6. Make all strategies actionable and specific to this startup idea
+
+PLATFORM-SPECIFIC GUIDELINES:
+- Twitter: Focus on threads, polls, engagement tactics
+- Instagram: Visual content, stories, reels, influencer collaborations
+- TikTok: Short-form videos, trending hashtags, viral potential
+- YouTube: Educational content, tutorials, longer-form videos
+- Facebook: Community building, groups, targeted advertising
+- Reddit: Community engagement, AMA sessions, value-first approach
+- Discord: Community building, real-time engagement, exclusive access
 
 Make it realistic, actionable, and investable. Focus on practical business insights with specific tools and costs.`;
 
@@ -105,11 +147,11 @@ Make it realistic, actionable, and investable. Focus on practical business insig
       model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.8,
-      max_tokens: 2000
+      max_tokens: 3000
     });
 
     const result = JSON.parse(response.choices[0].message.content);
-    
+
     res.status(200).json(result);
   } catch (error) {
     console.error('OpenAI API Error:', error);
