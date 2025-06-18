@@ -4,6 +4,11 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Vercel timeout için maksimum süre
+export const config = {
+  maxDuration: 60, // 60 saniye
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -16,145 +21,214 @@ export default async function handler(req, res) {
   }
 
   try {
-    const prompt = `Create a detailed startup idea based on these inputs:
-- Problem: ${problem}
-- Solution: ${solution}
-- Target Audience: ${targetAudience}
-- Validation Platforms: ${validationPlatforms.join(', ')}
-- Development Timeline: ${timeline} weeks
+    // Daha kısa ve optimize edilmiş prompt
+    const prompt = `Create a startup idea JSON based on these inputs:
+Problem: ${problem}
+Solution: ${solution}
+Target Audience: ${targetAudience}
+Platforms: ${validationPlatforms.join(', ')}
+Timeline: ${timeline} weeks
 
-Return ONLY a valid JSON object with this exact structure:
+Return ONLY valid JSON:
 {
-  "name": "Creative and memorable startup name",
-  "description": "2-3 sentence compelling business description",
-  "sector": "Industry category (e.g., FinTech, HealthTech, EdTech)",
-  "revenueModel": "Detailed revenue model with specific pricing tiers",
-  "marketSize": "Market size estimation with realistic data and growth potential",
-  "competition": "Competition analysis with differentiation opportunities",
-  "mvpFeatures": ["Essential feature 1", "Essential feature 2", "Essential feature 3", "Essential feature 4"],
+  "name": "Startup name",
+  "description": "Brief business description",
+  "sector": "Industry category",
+  "revenueModel": "Revenue model with pricing",
+  "marketSize": "Market size estimation",
+  "competition": "Competition analysis",
+  "mvpFeatures": ["Feature 1", "Feature 2", "Feature 3", "Feature 4"],
   "tools": {
-    "development": ["AI coding tool + cost (e.g., Cursor AI $20/month)", "deployment platform + cost", "version control tool", "database/backend solution"],
-    "design": ["design tool + cost (e.g., Figma $12/month)", "analytics tool + cost", "user feedback/testing tool"],
-    "operations": ["project management + cost", "communication tool + cost", "business operations tool"]
+    "development": ["Tool 1 + cost", "Tool 2 + cost", "Tool 3", "Tool 4"],
+    "design": ["Design tool + cost", "Analytics tool", "Testing tool"],
+    "operations": ["PM tool + cost", "Communication tool", "Business tool"]
   },
   "validation": {
     "platforms": ${JSON.stringify(validationPlatforms)},
-    "metrics": ["Platform-specific success metrics for each selected platform"],
+    "metrics": ["Success metric 1", "Success metric 2"],
     "platformStrategies": [
       {
-        "platform": "Platform name from selected platforms",
-        "frequency": "Posting frequency (e.g., 3 videos/week, daily posts)",
-        "strategy": "Detailed platform-specific strategy for this business idea",
-        "contentIdeas": ["Specific content idea 1", "Specific content idea 2", "Specific content idea 3", "Specific content idea 4"]
+        "platform": "${validationPlatforms[0] || 'Twitter'}",
+        "frequency": "Posting frequency",
+        "strategy": "Platform strategy",
+        "contentIdeas": ["Content 1", "Content 2", "Content 3"]
       }
     ]
   },
-   "weeklyPlan": [
-      ${Array.from({length: parseInt(timeline)}, (_, i) => `
-      {
-        "week": ${i + 1},
-        "focus": "Week ${i + 1} specific focus area for this startup idea",
-        "tasks": ["Specific actionable task 1 for week ${i + 1}", "Specific actionable task 2 for week ${i + 1}", "Specific actionable task 3 for week ${i + 1}"],
-        "deliverables": ["Concrete deliverable 1 for week ${i + 1}", "Concrete deliverable 2 for week ${i + 1}"],
-        "metrics": "Measurable success metrics and KPIs for week ${i + 1}"
-      }`).join(',\n  ')}
-    ],
+  "weeklyPlan": [
+    ${Array.from({length: Math.min(parseInt(timeline), 8)}, (_, i) => `{
+      "week": ${i + 1},
+      "focus": "Week ${i + 1} focus",
+      "tasks": ["Task 1", "Task 2", "Task 3"],
+      "deliverables": ["Deliverable 1", "Deliverable 2"],
+      "metrics": "Week ${i + 1} metrics"
+    }`).join(', ')}
+  ],
   "roadmap": [
-    ${timeline <= 4 ? `
     {
-      "phase": "Week 1: Rapid Validation",
-      "description": "Lightning customer interviews, quick landing page, problem validation",
-      "focus": "Validation (80%), basic setup (20%)",
-      "budget": "50% of total budget"
+      "phase": "Phase 1: Validation",
+      "description": "Validate and setup",
+      "focus": "Research and validation",
+      "budget": "40%"
     },
     {
-      "phase": "Weeks 2-3: Sprint Development",
-      "description": "Build core MVP features, basic user testing",
-      "focus": "Development (90%), testing (10%)",
-      "budget": "40% of total budget"
+      "phase": "Phase 2: Development",
+      "description": "Build MVP",
+      "focus": "Product development",
+      "budget": "35%"
     },
     {
-      "phase": "Week 4: Launch",
-      "description": "Public launch, immediate user feedback, quick iterations",
-      "focus": "Launch (60%), optimization (40%)",
-      "budget": "10% of total budget"
-    }` : `
-    {
-      "phase": "Weeks 1-${Math.floor(timeline * 0.25)}: Foundation & Validation",
-      "description": "Validate problem, build landing page, conduct customer interviews",
-      "focus": "Customer research (60%), basic website (20%), competitive analysis (20%)",
-      "budget": "40% of total budget"
-    },
-    {
-      "phase": "Weeks ${Math.floor(timeline * 0.25) + 1}-${Math.floor(timeline * 0.5)}: Build & Test",
-      "description": "Develop MVP, implement core features, alpha testing with early users",
-      "focus": "Product development (70%), user testing (20%), iterations (10%)",
-      "budget": "35% of total budget"
-    },
-    {
-      "phase": "Weeks ${Math.floor(timeline * 0.5) + 1}-${Math.floor(timeline * 0.75)}: Scale & Optimize",
-      "description": "Beta launch, gather feedback, optimize user experience and onboarding",
-      "focus": "Product optimization (40%), marketing content (30%), operations setup (30%)",
-      "budget": "20% of total budget"
-    },
-    {
-      "phase": "Weeks ${Math.floor(timeline * 0.75) + 1}-${timeline}: Launch & Growth",
-      "description": "Public launch, marketing campaigns, customer acquisition",
-      "focus": "Marketing & sales (50%), customer success (30%), product iterations (20%)",
-      "budget": "5% of total budget"
-    }`}
+      "phase": "Phase 3: Launch",
+      "description": "Launch and optimize",
+      "focus": "Marketing and growth",
+      "budget": "25%"
+    }
   ],
   "marketingChannels": [
     {
-      "channel": "Marketing channel name (e.g., Content Marketing, Influencer Partnerships)",
-      "strategy": "Detailed strategy for this channel",
-      "budget": "Percentage of marketing budget",
-      "timeline": "When to implement (e.g., Week 1-12)"
+      "channel": "Primary channel",
+      "strategy": "Channel strategy",
+      "budget": "40%",
+      "timeline": "Week 1-${timeline}"
+    },
+    {
+      "channel": "Secondary channel",
+      "strategy": "Channel strategy",
+      "budget": "30%",
+      "timeline": "Week 2-${timeline}"
     }
   ],
   "contentPlan": [
     {
-      "type": "Content type (e.g., Educational Videos, User Success Stories)",
-      "description": "Detailed description of this content type",
-      "frequency": "How often to create (e.g., 3 times per week)",
-      "platforms": ["Platform 1", "Platform 2"]
+      "type": "Content type 1",
+      "description": "Content description",
+      "frequency": "3 times per week",
+      "platforms": ["${validationPlatforms[0] || 'Twitter'}"]
+    },
+    {
+      "type": "Content type 2",
+      "description": "Content description",
+      "frequency": "Weekly",
+      "platforms": ["${validationPlatforms[1] || 'Instagram'}"]
     }
   ],
-  "goToMarket": "Comprehensive go-to-market strategy focusing on customer acquisition, tailored to the ${timeline}-week timeline",
-  "fundingNeeds": "Estimated funding requirements based on ${timeline}-week development timeline"
-}
+  "goToMarket": "Go-to-market strategy for ${timeline}-week timeline",
+  "fundingNeeds": "Funding requirements for ${timeline}-week development"
+}`;
 
-CRITICAL REQUIREMENTS:
-1. Generate platformStrategies for EACH selected platform: ${validationPlatforms.join(', ')}
-2. Create weeklyPlan for ALL ${timeline} weeks (each week should have specific tasks)
-3. Tailor all content strategies to the specific business idea (${problem} + ${solution})
-4. Include 3-4 marketingChannels appropriate for this business type
-5. Provide 3-4 contentPlan types that align with selected platforms
-6. Make all strategies actionable and specific to this startup idea
-
-PLATFORM-SPECIFIC GUIDELINES:
-- Twitter: Focus on threads, polls, engagement tactics
-- Instagram: Visual content, stories, reels, influencer collaborations
-- TikTok: Short-form videos, trending hashtags, viral potential
-- YouTube: Educational content, tutorials, longer-form videos
-- Facebook: Community building, groups, targeted advertising
-- Reddit: Community engagement, AMA sessions, value-first approach
-- Discord: Community building, real-time engagement, exclusive access
-
-Make it realistic, actionable, and investable. Focus on practical business insights with specific tools and costs.`;
+    // Timeout kontrolü ile API çağrısı
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 saniye timeout
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo", // Daha hızlı model
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.8,
-      max_tokens: 3000
+      temperature: 0.7,
+      max_tokens: 2000, // Azaltılmış token limiti
+      signal: controller.signal
     });
 
-    const result = JSON.parse(response.choices[0].message.content);
+    clearTimeout(timeoutId);
+
+    let result;
+    try {
+      result = JSON.parse(response.choices[0].message.content);
+    } catch (parseError) {
+      // JSON parse hatası durumunda basit bir fallback
+      result = {
+        name: `${solution} Startup`,
+        description: `A startup focused on solving ${problem} for ${targetAudience}`,
+        sector: "Technology",
+        error: "Generated content parsing failed, showing basic structure"
+      };
+    }
 
     res.status(200).json(result);
   } catch (error) {
-    console.error('OpenAI API Error:', error);
-    res.status(500).json({ error: 'Failed to generate idea' });
+    console.error('API Error:', error);
+    
+    if (error.name === 'AbortError') {
+      return res.status(408).json({ error: 'Request timeout - please try again' });
+    }
+    
+    // Fallback response
+    const fallbackResult = {
+      name: `${solution} Startup`,
+      description: `A startup idea focused on ${problem} targeting ${targetAudience}`,
+      sector: "Technology",
+      revenueModel: "Subscription-based model with tiered pricing",
+      marketSize: "Growing market with significant potential",
+      competition: "Competitive landscape analysis needed",
+      mvpFeatures: ["Core feature 1", "Core feature 2", "Core feature 3", "User dashboard"],
+      tools: {
+        development: ["Cursor AI $20/month", "Vercel $20/month", "GitHub Free", "Supabase $25/month"],
+        design: ["Figma $12/month", "Google Analytics Free", "Hotjar $32/month"],
+        operations: ["Notion $8/month", "Slack Free", "Stripe 2.9%"]
+      },
+      validation: {
+        platforms: validationPlatforms,
+        metrics: ["User engagement", "Conversion rate"],
+        platformStrategies: validationPlatforms.map(platform => ({
+          platform,
+          frequency: "3 times per week",
+          strategy: `Engage audience on ${platform} with valuable content`,
+          contentIdeas: ["Educational content", "Behind the scenes", "User stories"]
+        }))
+      },
+      weeklyPlan: Array.from({length: Math.min(parseInt(timeline), 4)}, (_, i) => ({
+        week: i + 1,
+        focus: `Week ${i + 1}: ${i === 0 ? 'Planning' : i === 1 ? 'Development' : i === 2 ? 'Testing' : 'Launch'}`,
+        tasks: [`Task 1 for week ${i + 1}`, `Task 2 for week ${i + 1}`, `Task 3 for week ${i + 1}`],
+        deliverables: [`Deliverable 1`, `Deliverable 2`],
+        metrics: `Week ${i + 1} success metrics`
+      })),
+      roadmap: [
+        {
+          phase: "Phase 1: Foundation",
+          description: "Setup and validation",
+          focus: "Market research and MVP planning",
+          budget: "40%"
+        },
+        {
+          phase: "Phase 2: Development",
+          description: "Build and test MVP",
+          focus: "Product development and testing",
+          budget: "35%"
+        },
+        {
+          phase: "Phase 3: Launch",
+          description: "Go to market",
+          focus: "Marketing and user acquisition",
+          budget: "25%"
+        }
+      ],
+      marketingChannels: [
+        {
+          channel: "Content Marketing",
+          strategy: "Create valuable content for target audience",
+          budget: "40%",
+          timeline: `Week 1-${timeline}`
+        },
+        {
+          channel: "Social Media",
+          strategy: "Build community on selected platforms",
+          budget: "35%",
+          timeline: `Week 2-${timeline}`
+        }
+      ],
+      contentPlan: [
+        {
+          type: "Educational Content",
+          description: "Share knowledge and insights",
+          frequency: "3 times per week",
+          platforms: validationPlatforms.slice(0, 2)
+        }
+      ],
+      goToMarket: `Focus on ${validationPlatforms.join(' and ')} for initial traction over ${timeline} weeks`,
+      fundingNeeds: `Estimated $5,000-15,000 for ${timeline}-week development cycle`,
+      fallback: true
+    };
+    
+    res.status(200).json(fallbackResult);
   }
 }
