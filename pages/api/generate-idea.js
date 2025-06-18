@@ -147,7 +147,7 @@ Make it realistic, actionable, and investable. Focus on practical business insig
       model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.8,
-      max_tokens: 3000
+      max_tokens: 1200
     });
 
     const result = JSON.parse(response.choices[0].message.content);
