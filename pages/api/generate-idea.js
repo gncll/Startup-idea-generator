@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 - Validation Platforms: ${validationPlatforms.join(', ')}
 - Development Timeline: ${timeline} weeks
 
-Return ONLY a valid JSON object with this exact structure:
+Return ONLY a valid JSON object with this exact structure (no markdown formatting, no code blocks, just pure JSON):
 {
   "name": "Creative and memorable startup name",
   "description": "2-3 sentence compelling business description",
@@ -152,7 +152,16 @@ Make it realistic, actionable, and investable. Focus on practical business insig
       frequency_penalty: 0.1
     });
 
-    const result = JSON.parse(response.choices[0].message.content);
+    let content = response.choices[0].message.content.trim();
+    
+    // Remove markdown code blocks if present
+    if (content.startsWith('```json')) {
+      content = content.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (content.startsWith('```')) {
+      content = content.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+    
+    const result = JSON.parse(content);
 
     res.status(200).json(result);
   } catch (error) {
