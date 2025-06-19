@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 - Validation Platforms: ${validationPlatforms.join(', ')}
 - Development Timeline: ${timeline} weeks
 
-Return ONLY a valid JSON object with this exact structure:
+Return ONLY a valid JSON object with this exact structure (no markdown formatting, no code blocks, just pure JSON):
 {
   "name": "Creative and memorable startup name",
   "description": "2-3 sentence compelling business description",
@@ -42,22 +42,36 @@ Return ONLY a valid JSON object with this exact structure:
     "metrics": ["Platform-specific success metrics for each selected platform"],
     "platformStrategies": [
       {
-        "platform": "Platform name from selected platforms",
-        "frequency": "Posting frequency (e.g., 3 videos/week, daily posts)",
-        "strategy": "Detailed platform-specific strategy for this business idea",
-        "contentIdeas": ["Specific content idea 1", "Specific content idea 2", "Specific content idea 3", "Specific content idea 4"]
+        "platform": "${validationPlatforms[0] || 'Twitter'}",
+        "frequency": "Daily posts",
+        "strategy": "Share problem-solution insights and user feedback",
+        "contentIdeas": ["Before/after user stories", "Problem validation posts", "Solution demo videos", "User testimonials"]
       }
     ]
   },
-  "weeklyPlan": [
-    {
-      "week": 1,
-      "focus": "Main focus area for this week",
-      "tasks": ["Specific task 1", "Specific task 2", "Specific task 3"],
-      "deliverables": ["Concrete deliverable 1", "Concrete deliverable 2"],
-      "metrics": "Success metrics for this week"
-    }
-  ],
+   "weeklyPlan": [
+      {
+        "week": 1,
+        "focus": "Research & Validation",
+        "tasks": ["Customer interviews", "Market research", "Landing page"],
+        "deliverables": ["Problem validation", "Basic website"],
+        "metrics": "10+ customer interviews"
+      },
+      {
+        "week": ${Math.ceil(timeline/2)},
+        "focus": "Build MVP",
+        "tasks": ["Core features", "Basic testing", "User feedback"],
+        "deliverables": ["Working prototype", "User feedback"],
+        "metrics": "MVP with 2-3 key features"
+      },
+      {
+        "week": ${timeline},
+        "focus": "Launch & Iterate",
+        "tasks": ["Public launch", "Marketing", "User acquisition"],
+        "deliverables": ["Live product", "First users"],
+        "metrics": "First 100 users"
+      }
+    ],
   "roadmap": [
     ${timeline <= 4 ? `
     {
@@ -123,33 +137,25 @@ Return ONLY a valid JSON object with this exact structure:
   "fundingNeeds": "Estimated funding requirements based on ${timeline}-week development timeline"
 }
 
-CRITICAL REQUIREMENTS:
-1. Generate platformStrategies for EACH selected platform: ${validationPlatforms.join(', ')}
-2. Create weeklyPlan for ALL ${timeline} weeks (each week should have specific tasks)
-3. Tailor all content strategies to the specific business idea (${problem} + ${solution})
-4. Include 3-4 marketingChannels appropriate for this business type
-5. Provide 3-4 contentPlan types that align with selected platforms
-6. Make all strategies actionable and specific to this startup idea
-
-PLATFORM-SPECIFIC GUIDELINES:
-- Twitter: Focus on threads, polls, engagement tactics
-- Instagram: Visual content, stories, reels, influencer collaborations
-- TikTok: Short-form videos, trending hashtags, viral potential
-- YouTube: Educational content, tutorials, longer-form videos
-- Facebook: Community building, groups, targeted advertising
-- Reddit: Community engagement, AMA sessions, value-first approach
-- Discord: Community building, real-time engagement, exclusive access
-
-Make it realistic, actionable, and investable. Focus on practical business insights with specific tools and costs.`;
+Keep it concise, actionable, and realistic. Focus on essential business insights.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.8,
-      max_tokens: 3000
+      temperature: 0.6,
+      max_tokens: 2500
     });
 
-    const result = JSON.parse(response.choices[0].message.content);
+    let content = response.choices[0].message.content.trim();
+    
+    // Remove markdown code blocks if present
+    if (content.startsWith('```json')) {
+      content = content.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (content.startsWith('```')) {
+      content = content.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+    
+    const result = JSON.parse(content);
 
     res.status(200).json(result);
   } catch (error) {
