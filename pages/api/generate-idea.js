@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 - Validation Platforms: ${validationPlatforms.join(', ')}
 - Development Timeline: ${timeline} weeks
 
-Return ONLY a valid JSON object with this exact structure (no markdown formatting, no code blocks, just pure JSON):
+Return ONLY a valid JSON object with this exact structure:
 {
   "name": "Creative and memorable startup name",
   "description": "2-3 sentence compelling business description",
@@ -49,16 +49,15 @@ Return ONLY a valid JSON object with this exact structure (no markdown formattin
       }
     ]
   },
-   "weeklyPlan": [
-      ${Array.from({length: parseInt(timeline)}, (_, i) => `
-      {
-        "week": ${i + 1},
-        "focus": "Week ${i + 1} specific focus area for this startup idea",
-        "tasks": ["Specific actionable task 1 for week ${i + 1}", "Specific actionable task 2 for week ${i + 1}", "Specific actionable task 3 for week ${i + 1}"],
-        "deliverables": ["Concrete deliverable 1 for week ${i + 1}", "Concrete deliverable 2 for week ${i + 1}"],
-        "metrics": "Measurable success metrics and KPIs for week ${i + 1}"
-      }`).join(',\n  ')}
-    ],
+  "weeklyPlan": [
+    {
+      "week": 1,
+      "focus": "Main focus area for this week",
+      "tasks": ["Specific task 1", "Specific task 2", "Specific task 3"],
+      "deliverables": ["Concrete deliverable 1", "Concrete deliverable 2"],
+      "metrics": "Success metrics for this week"
+    }
+  ],
   "roadmap": [
     ${timeline <= 4 ? `
     {
@@ -144,24 +143,13 @@ PLATFORM-SPECIFIC GUIDELINES:
 Make it realistic, actionable, and investable. Focus on practical business insights with specific tools and costs.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-      max_tokens: 3000,
-      top_p: 0.9,
-      frequency_penalty: 0.1
+      temperature: 0.8,
+      max_tokens: 3000
     });
 
-    let content = response.choices[0].message.content.trim();
-    
-    // Remove markdown code blocks if present
-    if (content.startsWith('```json')) {
-      content = content.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-    } else if (content.startsWith('```')) {
-      content = content.replace(/^```\s*/, '').replace(/\s*```$/, '');
-    }
-    
-    const result = JSON.parse(content);
+    const result = JSON.parse(response.choices[0].message.content);
 
     res.status(200).json(result);
   } catch (error) {
