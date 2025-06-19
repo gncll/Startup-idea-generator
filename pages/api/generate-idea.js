@@ -144,10 +144,10 @@ PLATFORM-SPECIFIC GUIDELINES:
 Make it realistic, actionable, and investable. Focus on practical business insights with specific tools and costs.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
-      max_tokens: 3500,
+      max_tokens: 3000,
       top_p: 0.9,
       frequency_penalty: 0.1
     });
