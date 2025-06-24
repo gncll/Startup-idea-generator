@@ -59,6 +59,7 @@ export default async function handler(req, res) {
       ],
       success_url: `${req.headers.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.origin}/buy-tokens`,
+      allow_promotion_codes: true, // Enable coupon codes
       metadata: {
         userId: userId,
         packageType: packageType,

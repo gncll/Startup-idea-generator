@@ -263,21 +263,33 @@ export default function BuyTokens() {
           ))}
         </div>
 
-        {/* Security Notice */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-8">
-          <div className="flex items-center gap-2 text-green-800">
-            <Check className="w-5 h-5" />
-            <span className="font-medium">Secure Payment</span>
+        {/* Security Notice & Coupon Info */}
+        <div className="grid md:grid-cols-2 gap-4 mt-8">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 text-green-800">
+              <Check className="w-5 h-5" />
+              <span className="font-medium">Secure Payment</span>
+            </div>
+            <p className="text-green-700 text-sm mt-1">
+              All payments are processed securely through Stripe. Your card information is never stored on our servers.
+            </p>
           </div>
-          <p className="text-green-700 text-sm mt-1">
-            All payments are processed securely through Stripe. Your card information is never stored on our servers.
-          </p>
+          
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 text-blue-800">
+              <CreditCard className="w-5 h-5" />
+              <span className="font-medium">Coupon Codes</span>
+            </div>
+            <p className="text-blue-700 text-sm mt-1">
+              Have a coupon code? You can enter it during checkout to get a discount on your purchase.
+            </p>
+          </div>
         </div>
 
         {/* Back to Dashboard */}
         <div className="text-center mt-12">
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/home')}
             className="text-indigo-600 hover:text-indigo-700 font-medium"
           >
             ← Back to Dashboard

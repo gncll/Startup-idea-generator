@@ -8,7 +8,7 @@ export default function Page() {
           <h1 className="text-3xl font-bold text-black mb-2">Get Started</h1>
           <p className="text-gray-600">Create your account to start generating amazing startup ideas</p>
         </div>
-        <SignUp />
+        <SignUp redirectUrl="/home" />
       </div>
     </div>
   );

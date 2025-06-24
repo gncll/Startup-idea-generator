@@ -3,8 +3,7 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
   "/": "pages/index.js",
-  "/api/get-my-ideas": "pages/api/get-my-ideas.js",
+  "/home": "pages/home.js",
   "/buy-tokens": "pages/buy-tokens.js",
-  "/api/create-checkout-session": "pages/api/create-checkout-session.js",
-  "/api/get-user-tokens": "pages/api/get-user-tokens.js"
+  "/api/get-my-ideas": "pages/api/get-my-ideas.js"
 }

@@ -54,17 +54,15 @@ const SimpleStartupGenerator = () => {
     }
   };
 
-  // Auto redirect to advanced if user is signed in and on home page
+  // Clean up just signed in flag
   useEffect(() => {
-    if (isLoaded && isSignedIn && router.pathname === '/') {
-      // Check if user just signed in (redirect to advanced)
+    if (isLoaded && isSignedIn) {
       const justSignedIn = localStorage.getItem('justSignedIn');
       if (justSignedIn) {
         localStorage.removeItem('justSignedIn');
-        router.push('/advanced');
       }
     }
-  }, [isLoaded, isSignedIn, router]);
+  }, [isLoaded, isSignedIn]);
 
   const handleInputChange = (field, value) => {
     setInputs(prev => ({
