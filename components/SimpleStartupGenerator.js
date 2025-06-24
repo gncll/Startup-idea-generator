@@ -187,7 +187,7 @@ const SimpleStartupGenerator = () => {
               Welcome back, {user.firstName || 'there'}! 👋
             </h2>
             <p className="text-gray-600 text-lg">
-              Choose what you'd like to do today
+              Choose what you would like to do today
             </p>
           </div>
 
@@ -268,6 +268,23 @@ const SimpleStartupGenerator = () => {
               </div>
             </div>
           </div>
+
+          {/* Buy Tokens Section */}
+          <div className="mt-12 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-lg p-8 text-center text-white">
+            <div className="max-w-2xl mx-auto">
+              <h2 className="text-2xl font-bold mb-4">Need More Power? 🚀</h2>
+              <p className="text-indigo-100 mb-6">
+                Unlock unlimited access to all features with our token system. Generate as many ideas as you want!
+              </p>
+              <a 
+                href="/buy-tokens"
+                className="inline-flex items-center px-6 py-3 bg-white text-indigo-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <Lightbulb className="w-5 h-5 mr-2" />
+                Buy Tokens
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -336,7 +353,6 @@ const SimpleStartupGenerator = () => {
         </div>
 
         {!generatedIdea ? (
-          /* Input Form */
           <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -352,7 +368,7 @@ const SimpleStartupGenerator = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                💡 What's your solution idea?
+                💡 What is your solution idea?
               </label>
               <textarea
                 value={inputs.solution}
@@ -389,7 +405,6 @@ const SimpleStartupGenerator = () => {
             </div>
           </div>
         ) : (
-          /* Generated Idea */
           <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
             <div className="text-center border-b pb-6">
               <div className="inline-flex items-center px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium mb-4">

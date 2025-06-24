@@ -2,9 +2,9 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/idea/[id]": "pages/idea/[id].js",
   "/": "pages/index.js",
   "/api/get-my-ideas": "pages/api/get-my-ideas.js",
-  "/api/get-idea/[id]": "pages/api/get-idea/[id].js",
-  "/my-ideas": "pages/my-ideas.js"
+  "/buy-tokens": "pages/buy-tokens.js",
+  "/api/create-checkout-session": "pages/api/create-checkout-session.js",
+  "/api/get-user-tokens": "pages/api/get-user-tokens.js"
 }
