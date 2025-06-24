@@ -2,6 +2,7 @@ import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import SimpleStartupGenerator from '../components/SimpleStartupGenerator';
+import N8nChatWidget from '../components/N8nChatWidget';
 
 export default function Index() {
   const { isLoaded, isSignedIn } = useUser();
@@ -32,5 +33,10 @@ export default function Index() {
   }
 
   // For non-signed-in users, show the simple generator
-  return <SimpleStartupGenerator />;
+  return (
+    <>
+      <SimpleStartupGenerator />
+      <N8nChatWidget />
+    </>
+  );
 }

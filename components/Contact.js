@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, MessageCircle, Send, CheckCircle } from 'lucide-react';
+import emailjs from '@emailjs/browser';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const Contact = () => {
     message: ''
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -18,22 +20,54 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically send the form data to your backend
-    console.log('Form submitted:', formData);
-    setIsSubmitted(true);
-    
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
-      });
-    }, 3000);
+    setIsLoading(true);
+
+    // EmailJS configuration - move outside try block
+    const serviceID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+    const templateID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+    try {
+      // Check if environment variables are loaded
+      if (!serviceID || !templateID || !publicKey) {
+        throw new Error(`Missing EmailJS configuration: serviceID=${serviceID}, templateID=${templateID}, publicKey=${publicKey ? 'SET' : 'NOT_SET'}`);
+      }
+
+      const templateParams = {
+        from_name: formData.name,
+        from_email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+        to_email: 'team@learnaiwithme.net'
+      };
+
+      await emailjs.send(serviceID, templateID, templateParams, publicKey);
+      
+      console.log('Email sent successfully!');
+      setIsSubmitted(true);
+      
+      // Reset form after 3 seconds
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: ''
+        });
+      }, 3000);
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      console.error('Error details:', error.text || error.message);
+      console.error('Service ID:', serviceID);
+      console.error('Template ID:', templateID);
+      console.error('Public Key:', publicKey);
+      alert(`Error sending message: ${error.text || error.message || 'Unknown error'}. Please check browser console for details.`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isSubmitted) {
@@ -82,7 +116,7 @@ const Contact = () => {
               </div>
               <div>
                 <h3 className="font-medium text-gray-900 mb-1">Email Us</h3>
-                <p className="text-gray-600">support@startupideagenerator.com</p>
+                <p className="text-gray-600">team@learnaiwithme.net</p>
                 <p className="text-sm text-gray-500 mt-1">We typically respond within 24 hours</p>
               </div>
             </div>
@@ -188,10 +222,11 @@ const Contact = () => {
 
             <button
               type="submit"
-              className="w-full flex items-center justify-center px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+              disabled={isLoading}
+              className="w-full flex items-center justify-center px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4 mr-2" />
-              Send Message
+              {isLoading ? 'Sending...' : 'Send Message'}
             </button>
           </form>
         </div>

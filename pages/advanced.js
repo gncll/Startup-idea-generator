@@ -2,6 +2,7 @@ import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import StartupIdeaGenerator from '../components/StartupIdeaGenerator';
+import N8nChatWidget from '../components/N8nChatWidget';
 
 export default function Advanced() {
   const { isLoaded, isSignedIn } = useUser();
@@ -31,6 +32,7 @@ export default function Advanced() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <StartupIdeaGenerator />
+      <N8nChatWidget />
     </div>
   );
 } 
