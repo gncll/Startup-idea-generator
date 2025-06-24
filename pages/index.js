@@ -1,5 +1,5 @@
-import StartupIdeaGenerator from '../components/StartupIdeaGenerator';
+import SimpleStartupGenerator from '../components/SimpleStartupGenerator';
 
 export default function Home() {
-  return <StartupIdeaGenerator />;
+  return <SimpleStartupGenerator />;
 }
