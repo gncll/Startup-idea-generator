@@ -16,8 +16,31 @@ const SuccessPage = () => {
     }
   }, [session_id, isLoaded]);
 
+  // Auto-redirect to home after 5 seconds to refresh tokens
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      router.push('/home?refresh=tokens');
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [router]);
+
   const verifyPurchase = async () => {
     try {
+      // First try to sync tokens manually
+      console.log('🔄 Syncing tokens manually...');
+      const syncResponse = await fetch('/api/manual-token-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id })
+      });
+
+      if (syncResponse.ok) {
+        const syncData = await syncResponse.json();
+        console.log(`✅ Tokens synced: +${syncData.tokensAdded}, Total: ${syncData.newTotal}`);
+      }
+
+      // Then verify purchase details
       const response = await fetch(`/api/verify-purchase?session_id=${session_id}`);
       if (response.ok) {
         const data = await response.json();

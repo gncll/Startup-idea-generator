@@ -32,14 +32,11 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'Unauthorized access to session' });
     }
 
-    // Get purchase details from database
+    // Get purchase details from database (simplified query to avoid index issues)
     const purchasesRef = collection(db, 'token-purchases');
     const q = query(
       purchasesRef,
-      where('userId', '==', userId),
-      where('stripeSessionId', '==', session_id),
-      orderBy('createdAt', 'desc'),
-      limit(1)
+      where('stripeSessionId', '==', session_id)
     );
 
     const snapshot = await getDocs(q);

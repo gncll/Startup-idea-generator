@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
-import { saveUsageCount, getUsageCount } from '../../lib/database';
+import { saveUsageCount, getUsageCount, getUserTokens, useTokens } from '../../lib/database';
+import { getAuth } from '@clerk/nextjs/server';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -31,18 +32,39 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  // Check usage limit
-  try {
-    const currentUsage = await getUsageCount(sessionId);
-    if (currentUsage >= 10) {
-      return res.status(429).json({ 
-        error: 'Usage limit reached. Please sign up for unlimited access.',
-        usageCount: currentUsage 
-      });
+  // Check if user is authenticated
+  const { userId } = getAuth(req);
+  const TOKENS_REQUIRED = 1; // Simple idea costs 1 token
+
+  if (userId) {
+    // Authenticated user - check tokens
+    try {
+      const userTokens = await getUserTokens(userId);
+      if (userTokens < TOKENS_REQUIRED) {
+        return res.status(402).json({ 
+          error: 'Insufficient tokens', 
+          required: TOKENS_REQUIRED,
+          available: userTokens 
+        });
+      }
+    } catch (error) {
+      console.error('Error checking tokens:', error);
+      return res.status(500).json({ error: 'Failed to check token balance' });
     }
-  } catch (error) {
-    console.error('Error checking usage count:', error);
-    // Continue if database check fails
+  } else {
+    // Non-authenticated user - check usage limit
+    try {
+      const currentUsage = await getUsageCount(sessionId);
+      if (currentUsage >= 10) {
+        return res.status(429).json({ 
+          error: 'Usage limit reached. Please sign up for unlimited access.',
+          usageCount: currentUsage 
+        });
+      }
+    } catch (error) {
+      console.error('Error checking usage count:', error);
+      // Continue if database check fails
+    }
   }
 
   // Only return mock response if OpenAI API key is completely missing
@@ -50,13 +72,23 @@ export default async function handler(req, res) {
     console.log('No OpenAI API key found, returning mock response');
     const mockResponse = generateMockResponse(problem, solution);
     
-    // Update usage count for mock response too
-    try {
-      const currentUsage = await getUsageCount(sessionId);
-      await saveUsageCount(sessionId, currentUsage + 1);
-      console.log('Usage count updated for session (mock):', sessionId);
-    } catch (dbError) {
-      console.error('Database usage count error (mock):', dbError);
+    // Update usage count or consume tokens for mock response
+    if (userId) {
+      // Authenticated user - consume tokens
+      try {
+        await useTokens(userId, TOKENS_REQUIRED);
+      } catch (error) {
+        console.error('Error consuming tokens (mock):', error);
+      }
+    } else {
+      // Non-authenticated user - update usage count
+      try {
+        const currentUsage = await getUsageCount(sessionId);
+        await saveUsageCount(sessionId, currentUsage + 1);
+        console.log('Usage count updated for session (mock):', sessionId);
+      } catch (dbError) {
+        console.error('Database usage count error (mock):', dbError);
+      }
     }
     
     return res.status(200).json(mockResponse);
@@ -99,14 +131,24 @@ Keep it concise, actionable, and realistic. Focus on essential business insights
     
     const result = JSON.parse(content);
 
-    // Update usage count
-    try {
-      const currentUsage = await getUsageCount(sessionId);
-      await saveUsageCount(sessionId, currentUsage + 1);
-      console.log('Usage count updated for session:', sessionId);
-    } catch (dbError) {
-      console.error('Database usage count error:', dbError);
-      // Continue with response even if database update fails
+    // Update usage count or consume tokens
+    if (userId) {
+      // Authenticated user - consume tokens
+      try {
+        await useTokens(userId, TOKENS_REQUIRED);
+      } catch (error) {
+        console.error('Error consuming tokens:', error);
+      }
+    } else {
+      // Non-authenticated user - update usage count
+      try {
+        const currentUsage = await getUsageCount(sessionId);
+        await saveUsageCount(sessionId, currentUsage + 1);
+        console.log('Usage count updated for session:', sessionId);
+      } catch (dbError) {
+        console.error('Database usage count error:', dbError);
+        // Continue with response even if database update fails
+      }
     }
 
     res.status(200).json(result);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lightbulb, Target, DollarSign, RefreshCw, ArrowRight, Plus, User, LogOut } from 'lucide-react';
+import { Lightbulb, Target, DollarSign, RefreshCw, ArrowRight, Plus, User, LogOut, Home, Coins } from 'lucide-react';
 import { useUser, SignOutButton, RedirectToSignIn, UserButton } from '@clerk/nextjs';
 import { useRouter } from 'next/router';
 
@@ -26,13 +26,28 @@ const StartupIdeaGenerator = () => {
   });
   const [isApproving, setIsApproving] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
+  const [userTokens, setUserTokens] = useState(0);
 
   // Redirect to sign-in if not authenticated
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
       router.push('/sign-in');
+    } else if (isLoaded && isSignedIn) {
+      fetchUserTokens();
     }
   }, [isLoaded, isSignedIn, router]);
+
+  const fetchUserTokens = async () => {
+    try {
+      const response = await fetch('/api/get-user-tokens');
+      if (response.ok) {
+        const data = await response.json();
+        setUserTokens(data.tokens);
+      }
+    } catch (error) {
+      console.error('Error fetching tokens:', error);
+    }
+  };
 
   // Show loading while Clerk is initializing
   if (!isLoaded) {
@@ -280,6 +295,9 @@ const StartupIdeaGenerator = () => {
         ...idea,
         userInputs: { ...inputs }
       });
+      
+      // Refresh token count after successful generation
+      fetchUserTokens();
     } catch (error) {
       console.error('Error:', error);
       alert('Failed to generate idea. Please try again.');
@@ -338,23 +356,42 @@ const StartupIdeaGenerator = () => {
   return (
     <div className="min-h-screen bg-white text-black">
       <div className="max-w-4xl mx-auto p-8">
-        {/* Header with User Info */}
-        <div className="text-center mb-12">
+        {/* Header with User Info - Single Block */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-12">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
               <Lightbulb className="w-8 h-8 text-black mr-3" />
-              <h1 className="text-4xl font-bold">Advanced Startup Generator</h1>
+              <div>
+                <h1 className="text-3xl font-bold">Advanced Startup Generator</h1>
+                <p className="text-gray-600 text-sm mt-1">Define your problem, solution, and audience to generate your comprehensive startup plan</p>
+              </div>
             </div>
             
             {/* User Menu */}
             {isLoaded && isSignedIn && (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => router.push('/home')}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                >
+                  <Home className="w-4 h-4" />
+                  Home
+                </button>
+                
+                <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 rounded-lg border border-indigo-200">
+                  <Coins className="w-4 h-4 text-indigo-600" />
+                  <span className="text-sm font-medium text-indigo-700">
+                    {userTokens.toLocaleString()} tokens
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
                   <User className="w-4 h-4" />
                   <span className="text-sm font-medium">
                     {user.firstName || user.emailAddresses[0].emailAddress}
                   </span>
                 </div>
+                
                 <UserButton 
                   appearance={{
                     elements: {
@@ -363,11 +400,9 @@ const StartupIdeaGenerator = () => {
                   }}
                   afterSignOutUrl="/"
                 />
-
               </div>
             )}
           </div>
-          <p className="text-gray-600 text-lg">Define your problem, solution, and audience to generate your comprehensive startup plan</p>
         </div>
 
         {!generatedIdea ? (

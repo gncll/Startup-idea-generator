@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { getAuth } from '@clerk/nextjs/server';
-import { saveStartupIdea } from '../../lib/database';
+import { saveStartupIdea, getUserTokens, useTokens } from '../../lib/database';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'fake-key',
@@ -21,6 +21,22 @@ export default async function handler(req, res) {
 
   if (!problem || !solution || !targetAudience || !validationPlatforms?.length || !timeline) {
     return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Check if user has enough tokens (Advanced idea costs 5 tokens)
+  const TOKENS_REQUIRED = 5;
+  try {
+    const userTokens = await getUserTokens(userId);
+    if (userTokens < TOKENS_REQUIRED) {
+      return res.status(402).json({ 
+        error: 'Insufficient tokens', 
+        required: TOKENS_REQUIRED,
+        available: userTokens 
+      });
+    }
+  } catch (error) {
+    console.error('Error checking tokens:', error);
+    return res.status(500).json({ error: 'Failed to check token balance' });
   }
 
   // Only return mock response if OpenAI API key is completely missing
@@ -134,6 +150,13 @@ export default async function handler(req, res) {
       validationPlatforms,
       timeline
     };
+
+    // Consume tokens for mock response too
+    try {
+      await useTokens(userId, TOKENS_REQUIRED);
+    } catch (error) {
+      console.error('Error consuming tokens:', error);
+    }
 
     return res.status(200).json(mockResponse);
   }
@@ -290,6 +313,13 @@ Keep it concise, actionable, and realistic. Focus on essential business insights
       validationPlatforms,
       timeline
     };
+
+    // Consume tokens after successful generation
+    try {
+      await useTokens(userId, TOKENS_REQUIRED);
+    } catch (error) {
+      console.error('Error consuming tokens:', error);
+    }
 
     res.status(200).json(result);
   } catch (error) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lightbulb, RefreshCw, Zap, ArrowRight, User, LogIn, HelpCircle, MessageCircle, BookOpen, FileText } from 'lucide-react';
+import { Lightbulb, RefreshCw, Zap, ArrowRight, User, LogIn, HelpCircle, MessageCircle, BookOpen, FileText, Coins } from 'lucide-react';
 import { useUser, UserButton } from '@clerk/nextjs';
 import { useRouter } from 'next/router';
 import FAQ from './FAQ';
@@ -20,6 +20,7 @@ const SimpleStartupGenerator = () => {
   const [showContact, setShowContact] = useState(false);
   const [lastIdea, setLastIdea] = useState(null);
   const [isLoadingLastIdea, setIsLoadingLastIdea] = useState(false);
+  const [userTokens, setUserTokens] = useState(0);
 
   // Load usage count from localStorage
   useEffect(() => {
@@ -29,12 +30,92 @@ const SimpleStartupGenerator = () => {
     }
   }, []);
 
-  // Load last idea for signed-in users
+  // Load last idea and tokens for signed-in users
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       fetchLastIdea();
+      fetchUserTokens();
     }
   }, [isLoaded, isSignedIn]);
+
+  // Check for refresh parameter from success page
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('refresh') === 'tokens' && isSignedIn) {
+        console.log('🔄 Refreshing tokens after purchase...');
+        setTimeout(() => {
+          fetchUserTokens();
+        }, 1000);
+        // Clean URL
+        window.history.replaceState({}, document.title, '/home');
+      }
+    }
+  }, [isSignedIn]);
+
+  // Refresh tokens when page becomes visible (after purchase)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isSignedIn) {
+        fetchUserTokens();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isSignedIn]);
+
+  // Real-time token updates via Server-Sent Events
+  useEffect(() => {
+    if (!isSignedIn || !user?.id) return;
+
+    console.log(`🔌 Setting up SSE connection for user: ${user.id}`);
+    const eventSource = new EventSource(`/api/token-updates?userId=${user.id}`);
+    
+    eventSource.onopen = () => {
+      console.log(`✅ SSE connection opened`);
+    };
+    
+    eventSource.onmessage = (event) => {
+      console.log(`📨 SSE message received:`, event.data);
+      
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'token_update') {
+          console.log(`🎉 Tokens updated! Old: ${userTokens}, New: ${data.tokens}`);
+          setUserTokens(data.tokens);
+        } else if (data.type === 'connected') {
+          console.log(`🔗 SSE connected successfully`);
+        } else if (data.type === 'heartbeat') {
+          console.log(`💓 SSE heartbeat`);
+        }
+      } catch (error) {
+        console.error('❌ Error parsing SSE message:', error, 'Raw data:', event.data);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('❌ SSE connection error:', error);
+      eventSource.close();
+    };
+
+    return () => {
+      console.log(`🔌 Closing SSE connection`);
+      eventSource.close();
+    };
+  }, [isSignedIn, user?.id]);
+
+  // Fallback: Poll for token updates every 60 seconds
+  useEffect(() => {
+    if (!isSignedIn) return;
+
+    const interval = setInterval(() => {
+      fetchUserTokens();
+    }, 60000); // 60 seconds
+
+    return () => clearInterval(interval);
+  }, [isSignedIn]);
 
   const fetchLastIdea = async () => {
     setIsLoadingLastIdea(true);
@@ -51,6 +132,18 @@ const SimpleStartupGenerator = () => {
       console.error('Error fetching last idea:', error);
     } finally {
       setIsLoadingLastIdea(false);
+    }
+  };
+
+  const fetchUserTokens = async () => {
+    try {
+      const response = await fetch('/api/get-user-tokens');
+      if (response.ok) {
+        const data = await response.json();
+        setUserTokens(data.tokens);
+      }
+    } catch (error) {
+      console.error('Error fetching tokens:', error);
     }
   };
 
@@ -162,6 +255,12 @@ const SimpleStartupGenerator = () => {
             </div>
             
             <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg shadow-sm">
+                <Coins className="w-4 h-4 text-indigo-600" />
+                <span className="text-sm font-medium text-gray-700">
+                  {userTokens.toLocaleString()} tokens
+                </span>
+              </div>
               <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg shadow-sm">
                 <User className="w-4 h-4 text-gray-600" />
                 <span className="text-sm font-medium text-gray-700">

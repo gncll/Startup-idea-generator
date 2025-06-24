@@ -26,6 +26,18 @@ export default function BuyTokens() {
     }
   }, [isLoaded, isSignedIn]);
 
+  // Refresh tokens when page becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isSignedIn) {
+        fetchUserTokens();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isSignedIn]);
+
   const fetchUserTokens = async () => {
     try {
       const response = await fetch('/api/get-user-tokens');

@@ -28,5 +28,9 @@ export default function Advanced() {
     return null; // Will redirect to home
   }
 
-  return <StartupIdeaGenerator />;
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <StartupIdeaGenerator />
+    </div>
+  );
 } 

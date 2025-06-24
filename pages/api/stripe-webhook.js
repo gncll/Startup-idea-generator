@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
-import { addTokens, saveTokenPurchase } from '../../lib/database';
+import { addTokens, saveTokenPurchase, getUserTokens } from '../../lib/database';
+import { notifyTokenUpdate } from './token-updates';
 
 // Helper function to get raw body
 const buffer = (req) => {
@@ -53,8 +54,7 @@ export default async function handler(req, res) {
         await addTokens(userId, tokensToAdd);
         
         // Save purchase record
-        await saveTokenPurchase({
-          userId,
+        await saveTokenPurchase(userId, {
           packageType,
           packageName,
           tokens: tokensToAdd,
@@ -64,7 +64,11 @@ export default async function handler(req, res) {
           status: 'completed'
         });
         
-        console.log(`Successfully added ${tokensToAdd} tokens to user ${userId}`);
+        // Get updated token count and notify user in real-time
+        const updatedTokens = await getUserTokens(userId);
+        notifyTokenUpdate(userId, updatedTokens);
+        
+        console.log(`Successfully added ${tokensToAdd} tokens to user ${userId}. New total: ${updatedTokens}`);
         
       } catch (error) {
         console.error('Error processing payment:', error);

@@ -4,6 +4,12 @@
   "/_document": "pages/_document.js",
   "/": "pages/index.js",
   "/home": "pages/home.js",
+  "/api/get-user-tokens": "pages/api/get-user-tokens.js",
+  "/api/get-my-ideas": "pages/api/get-my-ideas.js",
+  "/api/token-updates": "pages/api/token-updates.js",
   "/buy-tokens": "pages/buy-tokens.js",
-  "/api/get-my-ideas": "pages/api/get-my-ideas.js"
+  "/api/create-checkout-session": "pages/api/create-checkout-session.js",
+  "/api/verify-purchase": "pages/api/verify-purchase.js",
+  "/api/manual-token-sync": "pages/api/manual-token-sync.js",
+  "/success": "pages/success.js"
 }

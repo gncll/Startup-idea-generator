@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import { Lightbulb, Calendar, Eye, Trash2, ArrowLeft } from 'lucide-react';
+import { Lightbulb, Calendar, Eye, Trash2, ArrowLeft, Coins, Home } from 'lucide-react';
 import Link from 'next/link';
 
 const MyIdeas = () => {
@@ -8,12 +8,26 @@ const MyIdeas = () => {
   const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedIdea, setSelectedIdea] = useState(null);
+  const [userTokens, setUserTokens] = useState(0);
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       fetchMyIdeas();
+      fetchUserTokens();
     }
   }, [isLoaded, isSignedIn]);
+
+  // Refresh tokens when page becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isSignedIn) {
+        fetchUserTokens();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isSignedIn]);
 
   const fetchMyIdeas = async () => {
     try {
@@ -26,6 +40,18 @@ const MyIdeas = () => {
       console.error('Error fetching ideas:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserTokens = async () => {
+    try {
+      const response = await fetch('/api/get-user-tokens');
+      if (response.ok) {
+        const data = await response.json();
+        setUserTokens(data.tokens);
+      }
+    } catch (error) {
+      console.error('Error fetching tokens:', error);
     }
   };
 
@@ -80,14 +106,22 @@ const MyIdeas = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center">
-            <Link href="/" className="mr-4 p-2 hover:bg-gray-200 rounded-lg transition-colors">
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            <Link href="/home" className="mr-4 p-2 hover:bg-gray-200 rounded-lg transition-colors">
+              <Home className="w-5 h-5 text-gray-600" />
             </Link>
             <Lightbulb className="w-8 h-8 text-indigo-600 mr-3" />
             <h1 className="text-3xl font-bold text-gray-900">My Startup Ideas</h1>
           </div>
-          <div className="text-sm text-gray-600">
-            {ideas.length} {ideas.length === 1 ? 'idea' : 'ideas'} saved
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 rounded-lg border border-indigo-200">
+              <Coins className="w-4 h-4 text-indigo-600" />
+              <span className="text-sm font-medium text-indigo-700">
+                {userTokens.toLocaleString()} tokens
+              </span>
+            </div>
+            <div className="text-sm text-gray-600">
+              {ideas.length} {ideas.length === 1 ? 'idea' : 'ideas'} saved
+            </div>
           </div>
         </div>
 
