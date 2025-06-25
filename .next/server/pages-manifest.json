@@ -4,12 +4,5 @@
   "/_document": "pages/_document.js",
   "/sign-in/[[...index]]": "pages/sign-in/[[...index]].js",
   "/": "pages/index.js",
-  "/home": "pages/home.js",
-  "/api/get-user-tokens": "pages/api/get-user-tokens.js",
-  "/api/get-my-ideas": "pages/api/get-my-ideas.js",
-  "/idea/[id]": "pages/idea/[id].js",
-  "/my-ideas": "pages/my-ideas.js",
-  "/api/get-idea/[id]": "pages/api/get-idea/[id].js",
-  "/api/token-updates": "pages/api/token-updates.js",
-  "/advanced": "pages/advanced.js"
+  "/sign-up/[[...index]]": "pages/sign-up/[[...index]].js"
 }

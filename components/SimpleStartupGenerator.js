@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lightbulb, RefreshCw, Zap, ArrowRight, User, LogIn, HelpCircle, MessageCircle, BookOpen, FileText, Coins } from 'lucide-react';
+import { Lightbulb, RefreshCw, Zap, ArrowRight, User, LogIn, HelpCircle, MessageCircle, BookOpen, FileText, Coins, Sparkles, Target, TrendingUp, Users, Star, CheckCircle } from 'lucide-react';
 import { useUser, UserButton } from '@clerk/nextjs';
 import { useRouter } from 'next/router';
 import FAQ from './FAQ';
@@ -390,63 +390,177 @@ const SimpleStartupGenerator = () => {
   // For non-signed-in users, show the original simple generator with FAQ and Contact
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-6xl mx-auto p-8">
-        {/* Compact Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center">
-            <Lightbulb className="w-7 h-7 text-indigo-600 mr-3" />
-            <h1 className="text-3xl font-bold text-gray-900">Simple Startup Generator</h1>
-          </div>
-          
-          {/* Navigation & Auth Section */}
-          <div className="flex items-center gap-3">
-            {/* FAQ and Contact Links */}
-            <button 
-              onClick={() => scrollToSection('faq')}
-              className="flex items-center gap-1 px-3 py-2 text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors text-sm font-medium"
-            >
-              <HelpCircle className="w-4 h-4" />
-              FAQ
-            </button>
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-black opacity-50"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10"></div>
+        
+        {/* Floating Elements */}
+        <div className="absolute top-20 left-10 w-20 h-20 bg-indigo-400 rounded-full opacity-20 animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-32 h-32 bg-purple-400 rounded-full opacity-20 animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-20 w-16 h-16 bg-blue-400 rounded-full opacity-20 animate-pulse delay-2000"></div>
+        
+        <div className="relative max-w-6xl mx-auto px-8 py-20">
+          {/* Navigation Header */}
+          <div className="flex items-center justify-between mb-16">
+            <div className="flex items-center">
+              <Lightbulb className="w-8 h-8 text-white mr-3" />
+              <h1 className="text-2xl font-bold text-white">Startup Idea Generator</h1>
+            </div>
             
-            <button 
-              onClick={() => scrollToSection('contact')}
-              className="flex items-center gap-1 px-3 py-2 text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors text-sm font-medium"
-            >
-              <MessageCircle className="w-4 h-4" />
-              Contact
-            </button>
-
-            {/* Auth Section */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button 
-                onClick={handleSignInClick}
-                className="flex items-center gap-1 px-3 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors text-sm font-medium"
+                onClick={() => scrollToSection('faq')}
+                className="flex items-center gap-1 px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-sm font-medium"
               >
-                <LogIn className="w-4 h-4" />
-                Sign In
+                <HelpCircle className="w-4 h-4" />
+                FAQ
+              </button>
+              
+              <button 
+                onClick={() => scrollToSection('contact')}
+                className="flex items-center gap-1 px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-sm font-medium"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Contact
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={handleSignInClick}
+                  className="flex items-center gap-1 px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-sm font-medium"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Sign In
+                </button>
+                <button 
+                  onClick={handleSignUpClick}
+                  className="px-4 py-2 bg-white text-indigo-600 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium"
+                >
+                  Sign Up
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Hero Content */}
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/90 text-sm font-medium mb-8">
+              <Sparkles className="w-4 h-4 mr-2" />
+              AI-Powered Startup Idea Generation
+            </div>
+            
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+              Your AI Companion To
+              <br />
+              <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                Build Anything
+              </span>
+            </h1>
+            
+            <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed">
+              Generate detailed startup ideas with comprehensive business plans, MVP features, and launch roadmaps. 
+              Turn your vision into reality with AI-powered insights.
+            </p>
+
+            {/* Usage Counter */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white mb-8">
+              <Zap className="w-4 h-4 text-yellow-400" />
+              <span className="text-sm font-medium">
+                {maxUsage - usageCount} free generations left
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <button
+                onClick={() => document.getElementById('generator').scrollIntoView({ behavior: 'smooth' })}
+                className="inline-flex items-center px-8 py-4 bg-white text-indigo-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors shadow-lg"
+              >
+                <Lightbulb className="w-5 h-5 mr-2" />
+                Start Generating Ideas
               </button>
               <button 
                 onClick={handleSignUpClick}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                className="inline-flex items-center px-8 py-4 bg-transparent border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-indigo-600 transition-colors"
               >
-                Sign Up
+                <ArrowRight className="w-5 h-5 mr-2" />
+                Get Advanced Features
               </button>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white mb-2">10K+</div>
+                <div className="text-white/70 text-sm">Ideas Generated</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white mb-2">500+</div>
+                <div className="text-white/70 text-sm">Entrepreneurs</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white mb-2">50+</div>
+                <div className="text-white/70 text-sm">Industries</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white mb-2">98%</div>
+                <div className="text-white/70 text-sm">Satisfaction</div>
+              </div>
+                         </div>
+           </div>
+         </div>
+       </div>
+
+      {/* Features Section */}
+      <div className="bg-white py-16">
+        <div className="max-w-6xl mx-auto px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Powered by Advanced AI Technology</h2>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              Our AI analyzes market trends, competitor data, and business models to generate comprehensive startup ideas
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Target className="w-8 h-8 text-indigo-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Market Analysis</h3>
+              <p className="text-gray-600">
+                Get detailed target market analysis, competitor insights, and market size estimations for your startup idea.
+              </p>
+            </div>
+
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Business Strategy</h3>
+              <p className="text-gray-600">
+                Receive comprehensive business models, revenue strategies, and go-to-market plans tailored to your idea.
+              </p>
+            </div>
+
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">MVP Development</h3>
+              <p className="text-gray-600">
+                Get detailed MVP features, development roadmaps, and technical implementation guides to build your product.
+              </p>
             </div>
           </div>
         </div>
-        
-        {/* Subtitle and Usage Counter */}
+      </div>
+
+      {/* Main Generator Section */}
+      <div id="generator" className="max-w-6xl mx-auto p-8">
         <div className="text-center mb-8">
-          <p className="text-gray-600 text-lg mb-4">Generate startup ideas quickly with just 2 simple questions</p>
-          
-          {/* Usage Counter */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm">
-            <Zap className="w-4 h-4 text-indigo-600" />
-            <span className="text-sm font-medium text-gray-700">
-              {maxUsage - usageCount} uses left
-            </span>
-          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Generate Your Startup Idea</h2>
+          <p className="text-gray-600 text-lg">Answer just 2 simple questions to get started</p>
         </div>
 
         {!generatedIdea ? (
