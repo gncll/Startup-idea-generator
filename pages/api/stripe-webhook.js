@@ -9,6 +9,20 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 // This is your Stripe CLI webhook secret for testing your endpoint locally.
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+// Helper function to get raw body as recommended by Stripe docs
+const buffer = (req) => {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', (chunk) => {
+      chunks.push(chunk);
+    });
+    req.on('end', () => {
+      resolve(Buffer.concat(chunks));
+    });
+    req.on('error', reject);
+  });
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -24,24 +38,25 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Webhook secret not configured' });
     }
 
-    // Read raw body from request stream
-    const chunks = [];
-    for await (const chunk of req) {
-      chunks.push(chunk);
-    }
-    const rawBody = Buffer.concat(chunks);
+    // Get raw body using the buffer helper function (Stripe recommended approach)
+    const rawBody = await buffer(req);
+    
+    // Debug logging
+    console.log('Raw body length:', rawBody.length);
+    console.log('Signature header present:', !!sig);
+    console.log('Endpoint secret configured:', !!endpointSecret);
 
     // Construct the event with proper error handling
     event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
     
-    console.log('Webhook signature verified successfully');
+    console.log('✅ Webhook signature verified successfully for event:', event.type);
     
   } catch (err) {
-    console.error('Webhook signature verification failed:');
+    console.error('❌ Webhook signature verification failed:');
     console.error('Error message:', err.message);
-    console.error('Signature header:', sig);
-    console.error('Body type:', typeof req.body);
-    console.error('Body length:', req.body ? req.body.length : 'undefined');
+    console.error('Signature header:', sig ? 'Present' : 'Missing');
+    console.error('Raw body type:', typeof rawBody);
+    console.error('Raw body length:', rawBody ? rawBody.length : 'undefined');
     console.error('Endpoint secret exists:', !!endpointSecret);
     
     return res.status(400).json({ 
@@ -50,7 +65,7 @@ export default async function handler(req, res) {
     });
   }
 
-  console.log('Processing webhook event:', event.type);
+  console.log('🔄 Processing webhook event:', event.type, 'ID:', event.id);
 
   // Handle the event
   switch (event.type) {
@@ -58,17 +73,18 @@ export default async function handler(req, res) {
       const session = event.data.object;
       
       try {
-        console.log('Processing checkout.session.completed for session:', session.id);
+        console.log('💳 Processing checkout.session.completed for session:', session.id);
         
         // Extract metadata
-        const { userId, packageType, tokens, packageName } = session.metadata;
+        const { userId, packageType, tokens, packageName } = session.metadata || {};
         
         if (!userId || !tokens) {
-          console.error('Missing required metadata in session:', session.metadata);
+          console.error('❌ Missing required metadata in session:', session.metadata);
           // Return 200 to acknowledge webhook receipt even with missing metadata
           return res.status(200).json({ 
             received: true, 
-            error: 'Missing required metadata' 
+            error: 'Missing required metadata',
+            sessionId: session.id
           });
         }
         
@@ -92,33 +108,34 @@ export default async function handler(req, res) {
         const updatedTokens = await getUserTokens(userId);
         notifyTokenUpdate(userId, updatedTokens);
         
-        console.log(`Successfully added ${tokensToAdd} tokens to user ${userId}. New total: ${updatedTokens}`);
+        console.log(`✅ Successfully added ${tokensToAdd} tokens to user ${userId}. New total: ${updatedTokens}`);
         
       } catch (error) {
-        console.error('Error processing payment:', error);
-        // Return error but don't fail the webhook
+        console.error('❌ Error processing payment:', error);
+        // Return 200 to acknowledge webhook receipt even if processing fails
         return res.status(200).json({ 
           received: true, 
-          error: 'Processing failed but webhook acknowledged' 
+          error: 'Processing failed but webhook acknowledged',
+          sessionId: session.id
         });
       }
       break;
       
     case 'checkout.session.expired':
-      // Handle expired sessions if needed
-      console.log('Checkout session expired:', event.data.object.id);
+      console.log('⏰ Checkout session expired:', event.data.object.id);
       break;
       
     default:
-      console.log(`Unhandled event type ${event.type}`);
+      console.log(`ℹ️ Unhandled event type ${event.type}`);
   }
 
-  res.status(200).json({ received: true });
+  console.log('✅ Webhook processed successfully');
+  res.status(200).json({ received: true, eventId: event.id });
 }
 
-// Important: Disable body parsing for webhooks
+// Disable Next.js body parsing - CRITICAL for webhook signature verification
 export const config = {
   api: {
     bodyParser: false,
   },
-} 
+}; 
