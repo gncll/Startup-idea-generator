@@ -489,25 +489,7 @@ const SimpleStartupGenerator = () => {
               </button>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-2">10K+</div>
-                <div className="text-white/70 text-sm">Ideas Generated</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-2">500+</div>
-                <div className="text-white/70 text-sm">Entrepreneurs</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-2">50+</div>
-                <div className="text-white/70 text-sm">Industries</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white mb-2">98%</div>
-                <div className="text-white/70 text-sm">Satisfaction</div>
-              </div>
-                         </div>
+            
            </div>
          </div>
        </div>
