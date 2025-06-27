@@ -2,20 +2,6 @@ import Stripe from 'stripe';
 import { addTokens, saveTokenPurchase, getUserTokens } from '../../lib/database';
 import { notifyTokenUpdate } from './token-updates';
 
-// Helper function to get raw body
-const buffer = (req) => {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    req.on('data', (chunk) => {
-      chunks.push(chunk);
-    });
-    req.on('end', () => {
-      resolve(Buffer.concat(chunks));
-    });
-    req.on('error', reject);
-  });
-};
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 });
@@ -32,13 +18,39 @@ export default async function handler(req, res) {
   let event;
 
   try {
-    // Get raw body as buffer
-    const buf = await buffer(req);
-    event = stripe.webhooks.constructEvent(buf, sig, endpointSecret);
+    // Ensure we have the signing secret
+    if (!endpointSecret) {
+      console.error('STRIPE_WEBHOOK_SECRET is not set');
+      return res.status(500).json({ error: 'Webhook secret not configured' });
+    }
+
+    // Read raw body from request stream
+    const chunks = [];
+    for await (const chunk of req) {
+      chunks.push(chunk);
+    }
+    const rawBody = Buffer.concat(chunks);
+
+    // Construct the event with proper error handling
+    event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
+    
+    console.log('Webhook signature verified successfully');
+    
   } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    console.error('Webhook signature verification failed:');
+    console.error('Error message:', err.message);
+    console.error('Signature header:', sig);
+    console.error('Body type:', typeof req.body);
+    console.error('Body length:', req.body ? req.body.length : 'undefined');
+    console.error('Endpoint secret exists:', !!endpointSecret);
+    
+    return res.status(400).json({ 
+      error: `Webhook Error: ${err.message}`,
+      details: 'Signature verification failed'
+    });
   }
+
+  console.log('Processing webhook event:', event.type);
 
   // Handle the event
   switch (event.type) {
@@ -46,8 +58,20 @@ export default async function handler(req, res) {
       const session = event.data.object;
       
       try {
+        console.log('Processing checkout.session.completed for session:', session.id);
+        
         // Extract metadata
         const { userId, packageType, tokens, packageName } = session.metadata;
+        
+        if (!userId || !tokens) {
+          console.error('Missing required metadata in session:', session.metadata);
+          // Return 200 to acknowledge webhook receipt even with missing metadata
+          return res.status(200).json({ 
+            received: true, 
+            error: 'Missing required metadata' 
+          });
+        }
+        
         const tokensToAdd = parseInt(tokens);
         
         // Add tokens to user account
@@ -72,7 +96,11 @@ export default async function handler(req, res) {
         
       } catch (error) {
         console.error('Error processing payment:', error);
-        // You might want to implement retry logic here
+        // Return error but don't fail the webhook
+        return res.status(200).json({ 
+          received: true, 
+          error: 'Processing failed but webhook acknowledged' 
+        });
       }
       break;
       
